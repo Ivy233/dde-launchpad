@@ -21,6 +21,10 @@ InputEventItem {
     visible: true
     focus: true
 
+    onActiveFocusChanged: {
+        console.log("[LaunchpadFocus] WindowedFrame baseLayer activeFocus changed to:", activeFocus, "visible:", LauncherController.visible)
+    }
+
     KeyNavigation.tab: appGridLoader.item
 
     Shortcut {
@@ -304,9 +308,16 @@ InputEventItem {
     Connections {
         target: LauncherController
         function onVisibleChanged() {
-            // only do these clean-up steps on launcher get hide
-            if (LauncherController.visible) return
+            if (LauncherController.visible) {
+                console.log("[LaunchpadFocus] WindowedFrame: Launcher became visible. Forcing activeFocus on baseLayer...")
+                baseLayer.forceActiveFocus()
+                if (!baseLayer.activeFocus) {
+                    console.warn("[LaunchpadFocus] WindowedFrame: BUG_WARNING - baseLayer failed to acquire activeFocus immediately after forceActiveFocus()!")
+                }
+                return
+            }
 
+            console.log("[LaunchpadFocus] WindowedFrame: Launcher hiding. Resetting focus to baseLayer.")
             // clear searchEdit text
             bottomBar.searchEdit.text = ""
             // reset(remove) keyboard focus

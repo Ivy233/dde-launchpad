@@ -82,6 +82,10 @@ InputEventItem {
         focus: true
         objectName: "FullscreenFrame-BaseLayer"
         
+        onActiveFocusChanged: {
+            console.log("[LaunchpadFocus] FullscreenFrame baseLayer activeFocus changed to:", activeFocus, "visible:", LauncherController.visible)
+        }
+
         property real iconScaleFactor: DesktopIntegration.iconScaleFactor
         
         Behavior on iconScaleFactor {
@@ -885,8 +889,15 @@ InputEventItem {
         Connections {
             target: LauncherController
             function onVisibleChanged() {
-                // only do these clean-up steps on launcher get hide
-                if (LauncherController.visible) return
+                if (LauncherController.visible) {
+                    console.log("[LaunchpadFocus] FullscreenFrame: Launcher became visible. Forcing activeFocus on baseLayer...")
+                    baseLayer.forceActiveFocus()
+                    if (!baseLayer.activeFocus) {
+                        console.warn("[LaunchpadFocus] FullscreenFrame: BUG_WARNING - baseLayer failed to acquire activeFocus immediately after forceActiveFocus()!")
+                    }
+                    return
+                }
+                console.log("[LaunchpadFocus] FullscreenFrame: Launcher hiding. Resetting focus to baseLayer.")
                 // clear searchEdit text
                 searchEdit.text = ""
                 if (listviewPage.currentItem) {
