@@ -184,7 +184,7 @@ bool AppMgr::launchApp(const QString &desktopId)
     const auto path = amAppIface->path();
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);
-    process.start("dde-am", {"--by-user", path});
+    process.start("dde-am", {"--by-user", "--launch-type", "1", path});
     if (!process.waitForFinished()) {
         qCWarning(logDdeIntegration) << "Failed to launch the desktopId:" << desktopId << process.errorString();
         return false;
