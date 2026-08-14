@@ -34,6 +34,14 @@ ColumnLayout {
         (isFreeSort ? freeSortView : categoryView).resetViewState()
     }
 
+    // Forward to the free-sort view only; the categorized view has no
+    // move/displaced transitions and needs no settle handling.
+    function scheduleSettle() {
+        if (isFreeSort) {
+            freeSortView.scheduleSettle()
+        }
+    }
+
     // Both views are always instantiated; switching is done via `visible`
     // to avoid the costly Loader component destruction/creation (~120ms -> ~0ms).
     // The hidden view's ListView retains its delegates because it keeps a valid

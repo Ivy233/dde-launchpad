@@ -307,6 +307,9 @@ InputEventItem {
         function onVisibleChanged() {
             if (LauncherController.visible) {
                 baseLayer.forceActiveFocus()
+                // Re-arm the settle window on each show so a pending ready flip
+                // or post-ready increment stays animation-free.
+                appList.scheduleSettle()
                 Qt.callLater(() => {
                     if (!baseLayer.activeFocus) {
                         console.warn("[LaunchpadFocus] WindowedFrame: BUG_WARNING - baseLayer failed to acquire activeFocus after forceActiveFocus()!")

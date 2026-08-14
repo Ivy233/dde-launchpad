@@ -19,16 +19,49 @@ Item {
     property Item keyTabTarget: listView
     property bool animationEnabled: false
 
+    // Suppress move/displaced transitions until the shared app model is ready and
+    // its initial batch rearrangement has settled. The previous fixed 100ms timer
+    // (commit 49fe75e) assumed synchronous data availability, which was broken by
+    // the async shared-model migration (commit b3d8fbd): AppsModel.ready flips and
+    // ItemArrangementProxyModel rearranges well after that window expired, so the
+    // first-screen items slid into place via the 150ms y transition.
     Timer {
-        id: enableAnimationTimer
-        interval: 100
+        id: settleTimer
+        interval: 250
         onTriggered: {
             root.animationEnabled = true
         }
     }
 
+    function scheduleSettle() {
+        // Disable synchronously so reordering emitted during the same synchronous
+        // readyChanged dispatch is covered before the transition is evaluated on
+        // the next event-loop frame.
+        root.animationEnabled = false
+        settleTimer.restart()
+    }
+
     Component.onCompleted: {
-        enableAnimationTimer.start()
+        scheduleSettle()
+    }
+
+    Connections {
+        target: AppsModel
+        // ready flips after the async GetManagedObjects reply; the C++
+        // onSourceModelChanged rearrangement runs in the same synchronous
+        // dispatch, so disabling here covers the batch rowsMoved.
+        function onReadyChanged(ready) {
+            if (ready) {
+                scheduleSettle()
+            }
+        }
+        // Covers delayed-icon insertion (AppMgr 3s poll) and post-ready
+        // InterfacesAdded increments. DnD/topping/new-folder only emit
+        // dataChanged -> rowsMoved and never trigger AppsModel.rowsInserted,
+        // so their animations are preserved.
+        function onRowsInserted() {
+            scheduleSettle()
+        }
     }
 
     onFocusChanged: () => {
