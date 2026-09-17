@@ -65,17 +65,12 @@ AppsModel::AppsModel(QObject *parent)
             const QModelIndex sourceIndex = m_sourceModel->index(sourceRow, 0);
             if (normalizedDesktopId(sourceData(sourceIndex, DesktopIdRoleName).toString()) != desktopId)
                 continue;
-            if (!acceptsSourceIndex(sourceIndex))
-                return;
-
             const QPersistentModelIndex persistentSourceIndex(sourceIndex);
-            if (m_rows.contains(persistentSourceIndex))
+            const int adapterRow = m_rows.indexOf(persistentSourceIndex);
+            if (adapterRow < 0)
                 return;
 
-            const int adapterRow = adapterRowForSourceRow(sourceRow);
-            beginInsertRows({}, adapterRow, adapterRow);
-            m_rows.insert(adapterRow, persistentSourceIndex);
-            endInsertRows();
+            Q_EMIT dataChanged(index(adapterRow, 0), index(adapterRow, 0), { AppsModel::IconNameRole });
             return;
         }
     });
@@ -405,8 +400,7 @@ void AppsModel::rebuildRows()
     if (m_sourceModel) {
         for (int row = 0; row < m_sourceModel->rowCount(); ++row) {
             const QModelIndex sourceIndex = m_sourceModel->index(row, 0);
-            const QString desktopId = normalizedDesktopId(sourceData(sourceIndex, DesktopIdRoleName).toString());
-            if (acceptsSourceIndex(sourceIndex) && !AppMgr::instance()->isPendingAppItem(desktopId))
+            if (acceptsSourceIndex(sourceIndex))
                 m_rows.append(sourceIndex);
         }
     }
@@ -417,7 +411,10 @@ bool AppsModel::shouldDelaySourceIndex(const QModelIndex &sourceIndex) const
 {
     const QString desktopId = normalizedDesktopId(sourceData(sourceIndex, DesktopIdRoleName).toString());
     const QString iconName = sourceData(sourceIndex, IconNameRoleName).toString();
-    return AppMgr::instance()->waitForIcon(desktopId, iconName);
+    // Track the item for icon-readiness polling, but never delay row insertion.
+    // Rows are inserted immediately; icons update in-place via dataChanged when ready.
+    AppMgr::instance()->waitForIcon(desktopId, iconName);
+    return false;
 }
 
 void AppsModel::updateIconData()
