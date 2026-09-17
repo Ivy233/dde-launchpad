@@ -153,6 +153,12 @@ QtObject {
 
     readonly property size windowedFrameSize: Qt.size(610, 480)
 
+    // 4K and above: disable compositor-side blur and startup effect to avoid
+    // expensive per-pixel operations that cause ~2s lag on mode switch.
+    // Threshold: physical screen width >= 3840 (covers standard 4K 3840x2160).
+    // 1080p (1920x1080) and 1440p (2560x1440) are unaffected.
+    readonly property bool is4KScreen: Screen.width * Screen.devicePixelRatio >= 3840
+
     // update by caller.
     property point windowedPos: Qt.point(0, 0)
     property var windowedFrame: ApplicationWindow {
@@ -243,7 +249,7 @@ QtObject {
         DWindow.windowRadius: DTK.platformTheme.windowRadius < 0 ? 12 : DTK.platformTheme.windowRadius
         DWindow.enableSystemResize: false
         DWindow.enableSystemMove: false
-        DWindow.enableBlurWindow: true
+        DWindow.enableBlurWindow: !is4KScreen
         DWindow.borderColor: DTK.themeType === ApplicationHelper.DarkType ? Qt.rgba(0, 0, 0, windowedFrameWindow.blendColorAlpha(0.6) + 20 / 255) : Qt.rgba(0, 0, 0, 0.15)
 
         onVisibleChanged: {
@@ -316,7 +322,7 @@ QtObject {
         DWindow.enableSystemMove: false
         // Fullscreen mode: always assume dark theme
         DWindow.themeType: ApplicationHelper.DarkType
-        DWindow.windowStartUpEffect: PlatformHandle.EffectOut
+        DWindow.windowStartUpEffect: is4KScreen ? 0 : PlatformHandle.EffectOut
 
         onVisibleChanged: {
             if (visible) {
