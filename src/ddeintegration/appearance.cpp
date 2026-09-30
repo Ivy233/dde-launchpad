@@ -120,11 +120,21 @@ void Appearance::updateCurrentWallpaperBlurhash()
 
 void Appearance::updateAllWallpaper()
 {
-    QJsonParseError err;
+    if (!m_dbusAppearanceIface || !m_dbusAppearanceIface->isValid()) {
+        qCDebug(logDdeIntegration) << "DBus interface is not valid, skipping wallpaper update";
+        return;
+    }
+
     QString urls = m_dbusAppearanceIface->wallpaperURls();
+    if (urls.isEmpty()) {
+        qCDebug(logDdeIntegration) << "wallpaperURls returned empty, skipping";
+        return;
+    }
+
+    QJsonParseError err;
     QJsonDocument doc = QJsonDocument::fromJson(urls.toUtf8(), &err);
     if (err.error != QJsonParseError::NoError) {
-        qCWarning(logDdeIntegration) << "Get wallpapers failed:" << err.errorString();
+        qCDebug(logDdeIntegration) << "Get wallpapers failed:" << err.errorString();
         return;
     }
 

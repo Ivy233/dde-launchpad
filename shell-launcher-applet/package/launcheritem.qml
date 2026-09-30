@@ -22,8 +22,8 @@ AppletItem {
     property bool useColumnLayout: Panel.position % 2
     property int dockOrder: 12
     // 1:4 the distance between app : dock height; get width/height≈0.8
-    implicitWidth: useColumnLayout ? Panel.rootObject.dockSize : Panel.rootObject.dockItemMaxSize * 0.8
-    implicitHeight: useColumnLayout ? Panel.rootObject.dockItemMaxSize * 0.8 : Panel.rootObject.dockSize
+    implicitWidth: useColumnLayout ? (Panel.rootObject ? Panel.rootObject.dockSize : 0) : (Panel.rootObject ? Panel.rootObject.dockItemMaxSize * 0.8 : 0)
+    implicitHeight: useColumnLayout ? (Panel.rootObject ? Panel.rootObject.dockItemMaxSize * 0.8 : 0) : (Panel.rootObject ? Panel.rootObject.dockSize : 0)
 
    function toggleLauncher() {
         LauncherController.visible = !LauncherController.visible
@@ -45,6 +45,7 @@ AppletItem {
 
     Connections {
         target: Panel
+        enabled: Panel.rootObject !== null
         function onLeftEdgeClicked(minOrder) {
             if (launcher.dockOrder == minOrder) {
                 toggleLauncher()
