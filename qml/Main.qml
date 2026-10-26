@@ -158,6 +158,7 @@ QtObject {
     property point windowedPos: Qt.point(0, 0)
     property var windowedFrame: ApplicationWindow {
         id: windowedFrameWindow
+        readonly property bool is4KScreen: Screen.width * Screen.devicePixelRatio >= 3840
         objectName: "WindowedFrameApplicationWindow"
         title: "Windowed Launchpad"
         visible: LauncherController.visible && (LauncherController.currentFrame === "WindowedFrame")
@@ -244,7 +245,7 @@ QtObject {
         DWindow.windowRadius: DTK.platformTheme.windowRadius < 0 ? 12 : DTK.platformTheme.windowRadius
         DWindow.enableSystemResize: false
         DWindow.enableSystemMove: false
-        DWindow.enableBlurWindow: true
+        DWindow.enableBlurWindow: !is4KScreen
         DWindow.borderColor: DTK.themeType === ApplicationHelper.DarkType ? Qt.rgba(0, 0, 0, windowedFrameWindow.blendColorAlpha(0.6) + 20 / 255) : Qt.rgba(0, 0, 0, 0.15)
 
         onVisibleChanged: {
@@ -296,6 +297,7 @@ QtObject {
     }
 
     property var fullscreenFrame: ApplicationWindow {
+        readonly property bool is4KScreen: Screen.width * Screen.devicePixelRatio >= 3840
         objectName: "FullscreenFrameApplicationWindow"
         title: "Fullscreen Launchpad"
         visible: LauncherController.visible && (LauncherController.currentFrame !== "WindowedFrame")
@@ -320,7 +322,7 @@ QtObject {
         DWindow.enableSystemMove: false
         // Fullscreen mode: always assume dark theme
         DWindow.themeType: ApplicationHelper.DarkType
-        DWindow.windowStartUpEffect: PlatformHandle.EffectOut
+        DWindow.windowStartUpEffect: is4KScreen ? 0 : PlatformHandle.EffectOut
 
         onVisibleChanged: {
             if (visible) {

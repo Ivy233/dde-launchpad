@@ -5,6 +5,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 
 import org.deepin.dtk 1.0
 import org.deepin.dtk.style 1.0 as DStyle
@@ -196,6 +197,7 @@ AppletItem {
     }
 
     property var fullscreenFrame: ApplicationWindow {
+        readonly property bool is4KScreen: Screen.width * Screen.devicePixelRatio >= 3840
         objectName: "FullscreenFrameApplicationWindow"
         title: "org.deepin.ds.launchpad.fullscreen"
         visible: LauncherController.visible && (LauncherController.currentFrame !== "WindowedFrame")
@@ -228,7 +230,7 @@ AppletItem {
         DWindow.enableSystemMove: false
         // Fullscreen mode: always assume dark theme
         DWindow.themeType: ApplicationHelper.DarkType
-        DWindow.windowStartUpEffect: PlatformHandle.EffectOut
+        DWindow.windowStartUpEffect: is4KScreen ? 0 : PlatformHandle.EffectOut
 
         onVisibleChanged: {
             if (visible) {
@@ -292,6 +294,7 @@ AppletItem {
         readonly property int dockPosition: DesktopIntegration.dockPosition
         readonly property bool dockIsHorizontal: dockPosition === Qt.UpArrow || dockPosition === Qt.DownArrow
         readonly property bool isDarkTheme: D.DTK.themeType === D.ApplicationHelper.DarkType
+        readonly property bool is4KScreen: Screen.width * Screen.devicePixelRatio >= 3840
         readonly property int dockThickness: dockIsHorizontal ? Panel.rootObject.height
                                                              : Panel.rootObject.width
         readonly property int dockReservedZone: DesktopIntegration.isTreeLand() ? Panel.rootObject.DLayerShellWindow.exclusionZone : 0
@@ -328,7 +331,7 @@ AppletItem {
         DWindow.windowRadius: D.DTK.platformTheme.windowRadius < 0 ? 12 : D.DTK.platformTheme.windowRadius
         DWindow.enableSystemResize: false
         DWindow.enableSystemMove: false
-        DWindow.enableBlurWindow: true
+        DWindow.enableBlurWindow: !is4KScreen
         DWindow.shadowOffset: Qt.point(0, 25)
         DWindow.shadowColor: isDarkTheme ? Qt.rgba(0, 0, 0, 0.5) : Qt.rgba(0, 0, 0, 0.2)
         D.ColorSelector.family: D.Palette.CrystalColor
