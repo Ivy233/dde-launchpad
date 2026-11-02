@@ -383,6 +383,9 @@ AppletItem {
         onClosing: {
             if (LauncherController.currentFrame === "WindowedFrame")
                 LauncherController.visible = false
+            // Prevent Qt6 from destroying the platform window on close,
+            // avoiding severe lag on repeated show/hide in windowed mode
+            close.accepted = false
         }
     }
 
